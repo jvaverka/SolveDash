@@ -1,79 +1,6 @@
+using Solver
 using Dash, DashHtmlComponents, DashCoreComponents
 
-
-function solve(ic)
-    answers = Dict()
-
-    if isnothing(ic["acceleration"]) &&
-       !isnothing(ic["xinit_vel"]) &&
-       !isnothing(ic["xfinal_vel"]) &&
-       !isnothing(ic["given_time"])
-
-        answers["acceleration"] = round(find_acceleration_with_vel(ic), digits=4)
-    end
-
-    if isnothing(ic["xavg_vel"]) &&
-        !isnothing(ic["xinit_pos"]) &&
-        !isnothing(ic["xfinal_pos"]) &&
-        !isnothing(ic["given_time"])
-
-        answers["average_velocity"] = round(find_average_velocity(ic), digits=4)
-    end
-
-    if !isnothing(ic["xavg_vel"]) && !isnothing(ic["given_time"])
-        answers["distance"] = round(find_distance_wth_avg_velocity(ic), digits=4)
-    end
-
-    if isnothing(ic["given_time"]) &&
-        !isnothing(ic["xavg_vel"]) &&
-        !isnothing(ic["xinit_pos"]) &&
-        !isnothing(ic["xfinal_pos"])
-
-        answers["time"] = round(find_time_with_avg_vel(ic), digits=4)
-    end
-
-    if isnothing(ic["xfinal_vel"]) &&
-        !isnothing(ic["xinit_vel"]) &&
-        !isnothing(ic["acceleration"]) &&
-        !isnothing(ic["given_time"])
-
-        answers["final_x_velocity"] = round(find_final_velocity(ic), digits=4)
-    end
-
-    if isnothing(ic["given_time"]) &&
-        !isnothing(ic["acceleration"]) &&
-        !isnothing(ic["xfinal_vel"]) &&
-        !isnothing(ic["xinit_vel"])
-
-        answers["time"] = round(find_time_to_final_vel(ic), digits=4)
-    end
-
-    return answers
-end
-
-function find_average_velocity(ic)
-    return ((ic["xfinal_pos"] - ic["xinit_pos"])) / ic["given_time"]
-end
-
-function find_distance_wth_avg_velocity(ic)
-    return (ic["xavg_vel"] * ic["given_time"]) / 2
-end
-
-function find_time_with_avg_vel(ic)
-    return (ic["xfinal_pos"] - ic["xinit_pos"]) / ic["xavg_vel"]
-end
-
-function find_acceleration_with_vel(ic)
-    return (ic["xfinal_vel"] - ic["xinit_vel"]) / ic["given_time"]
-end
-
-function find_final_velocity(ic)
-    return ic["xinit_vel"] + ic["acceleration"] * ic["given_time"]
-end
-
-function find_time_to_final_vel(ic)
-    return (ic["xfinal_vel"] - ic["xinit_vel"]) / ic["acceleration"]
-end
 
 app = dash()
 md = "
@@ -184,36 +111,37 @@ xfinal_vel,
 time,
 acceleration
 
-    given = Dict(
-        "xinit_pos" => xinit_pos,
-        "xfinal_pos" => xfinal_pos,
-        "xinit_vel" => xinit_vel,
-        "xavg_vel" => xavg_vel,
-        "xfinal_vel" => xfinal_vel,
-        # "yinit_pos" => yinit_pos,
-        # "yinit_vel" => yinit_vel,
-        # "yfinal_vel" => yfinal_vel,
-        "given_time" => time,
-        "acceleration" => acceleration,
+    # dictionary to hold given |initial_conditions|
+    initial_conditions = Dict(
+        :x₀ => xinit_pos,
+        :x => xfinal_pos,
+        :v₀ => xinit_vel,
+        :v̄ => xavg_vel,
+        :v => xfinal_vel,
+        # yinit_pos,
+        # yinit_vel,
+        # yfinal_vel,
+        :t => time,
+        :a => acceleration,
     )
 
-    solutions = solve(given)
+    solutions = solve(initial_conditions)
 
     conditions = ""
-    for (key, value) in given
+    for (key, value) in initial_conditions
         conditions *= "
         $key:\t$value
         "
     end
 
-    results = ""
+    solns = ""
     for (key, value) in solutions
-        results *= "
+        solns *= "
         $key:\t$value
         "
     end
-    if results == ""
-        results *= "Not enough information to solve."
+    if solns == ""
+        solns *= "Not enough information to solve."
     end
 
     return "
@@ -221,7 +149,7 @@ acceleration
     $conditions
 
     ### Solutions -
-    $results
+    $solns
     "
 end
 
