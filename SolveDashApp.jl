@@ -1,5 +1,6 @@
-using Solver
 using Dash, DashHtmlComponents, DashCoreComponents
+
+include("Solver.jl")
 
 
 app = dash()
@@ -125,7 +126,7 @@ acceleration
         :a => acceleration,
     )
 
-    solutions = solve(initial_conditions)
+    solutions = Solver.solve(initial_conditions)
 
     conditions = ""
     for (key, value) in initial_conditions

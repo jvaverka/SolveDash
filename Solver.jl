@@ -1,6 +1,6 @@
 module Solver
 
-using PhysicsOne
+include("PhysicsOne.jl")
 
 export solve
 
@@ -12,37 +12,39 @@ function solve(g)
        !isnothing(g[:v]) &&
        !isnothing(g[:t])
         soln["acceleration"] =
-            float(round(get_acc(g[:v], g[:v₀], g[:t]), digits = 4))
+            float(round(PhysicsOne.get_acc(g[:v], g[:v₀], g[:t]), digits = 4))
     end
     if isnothing(g[:v̄]) &&
        !isnothing(g[:x₀]) &&
        !isnothing(g[:x]) &&
        !isnothing(g[:t])
         soln["average_velocity"] =
-            float(round(get_v̄(g[:x], g[:x₀], g[:t]), digits = 4))
+            float(round(PhysicsOne.get_v̄(g[:x], g[:x₀], g[:t]), digits = 4))
     end
     if !isnothing(g[:v̄]) && !isnothing(g[:t])
         soln["distance_traveled"] =
-            float(round(get_dist(g[:v̄], g[:t]), digits = 4))
+            float(round(PhysicsOne.get_dist(g[:v̄], g[:t]), digits = 4))
     end
     if isnothing(g[:t]) &&
        !isnothing(g[:v̄]) &&
        !isnothing(g[:x₀]) &&
        !isnothing(g[:x])
-        soln["time"] = float(round(get_time(g[:x], g[:x₀], g[:v̄]), digits = 4))
+        soln["time"] =
+            float(round(PhysicsOne.get_time(g[:x], g[:x₀], g[:v̄]), digits = 4))
     end
     if isnothing(g[:v]) &&
        !isnothing(g[:v₀]) &&
        !isnothing(g[:a]) &&
        !isnothing(g[:t])
         soln["final_velocity"] =
-            float(round(get_vel(g[:v₀], g[:a], g[:t]), digits = 4))
+            float(round(PhysicsOne.get_vel(g[:v₀], g[:a], g[:t]), digits = 4))
     end
     if isnothing(g[:t]) &&
        !isnothing(g[:a]) &&
        !isnothing(g[:v]) &&
        !isnothing(g[:v₀])
-        soln["time"] = float(round(get_time(g[:v], g[:v₀], g[:a]), digits = 4))
+        soln["time"] =
+            float(round(PhysicsOne.get_time(g[:v], g[:v₀], g[:a]), digits = 4))
     end
 
     return soln
