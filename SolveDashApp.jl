@@ -1,139 +1,98 @@
 using Dash, DashHtmlComponents, DashCoreComponents
 
 include("Solver.jl")
+include("tabs/Basics.jl")
+include("tabs/KinematicsOneD.jl")
+include("tabs/KinematicsTwoD.jl")
 
 
 app = dash()
 md = "
-# Welcome to Solve Dash
+# Welcome to Solve Physics
 
-This tool helps you solve many common problems from Physics I.
+Designed to help you solve common Physics I problems.
 
-Simply enter the parameters of a particular problem,
-hit **solve**, and see the results below.
+Enter the parameters of your problem and simply
+hit **solve**!
 "
 
 app.layout = html_div() do
     dcc_markdown(md),
-    html_div(
+    dcc_tabs(
         children = [
-            dcc_input(
-                id = "input-x-start-pos",
-                value = nothing,
-                type = "number",
-                placeholder = "Initial X Position",
+            dcc_tab(
+                label = "Basics",
+                children = [
+                    Basics.basic_layout(),
+                    html_button(
+                        id = "solve-button-state",
+                        children = "solve",
+                        n_clicks = 0,
+                    ),
+                    dcc_markdown(id = "output-solution"),
+                ],
             ),
-            dcc_input(
-                id = "input-x-final-pos",
-                value = nothing,
-                type = "number",
-                placeholder = "Final X Position",
-            ),
-            dcc_input(
-                id = "input-x-velocity-init",
-                value = nothing,
-                type = "number",
-                placeholder = "Initial X Velocity",
-            ),
-            dcc_input(
-                id = "input-x-average-vel",
-                value = nothing,
-                type = "number",
-                placeholder = "Average X Velocity",
-            ),
-            dcc_input(
-                id = "input-x-velocity-final",
-                value = nothing,
-                type = "number",
-                placeholder = "Final X Velocity",
-            ),
+            # dcc_tab(
+            #     label = "1D Kinematics",
+            #     children =[
+            #         KinematicsOneD.kinematics_oned_layout(),
+            #         html_button(
+            #             id = "solve-k1d-button-state",
+            #             children = "solve",
+            #             n_clicks = 0,
+            #         ),
+            #         dcc_markdown(id = "output-k1d-solution"),
+            #     ],
+            # ),
+            # dcc_tab(
+            #     label = "2D Kinematics",
+            #     children = [
+            #         KinematicsTwoD.kinematics_twod_layout(),
+            #         html_button(
+            #             id = "solve-k2d-button-state",
+            #             children = "solve",
+            #             n_clicks = 0,
+            #         ),
+            #         dcc_markdown(id = "output-k2d-solution"),
+            #     ],
+            # ),
         ],
-    ),
-    # html_div(
-    #     children = [
-    #         dcc_input(
-    #             id = "input-y-start-pos",
-    #             value = nothing,
-    #             type = "number",
-    #             placeholder = "Initial Y Position"
-    #         ),
-    #         dcc_input(
-    #             id = "input-y-velocity-init",
-    #             value = nothing,
-    #             type = "number",
-    #             placeholder = "Initial Y Velocity"
-    #         ),
-    #         dcc_input(
-    #             id = "input-y-velocity-final",
-    #             value = nothing,
-    #             type = "number",
-    #             placeholder = "Final Y Velocity"
-    #         ),
-    #     ],
-    # ),
-    html_div(dcc_input(
-        id = "input-time",
-        value = nothing,
-        type = "number",
-        placeholder = "Time",
-    )),
-    html_div(dcc_input(
-        id = "input-acceleration",
-        value = nothing,
-        type = "number",
-        placeholder = "Acceleration",
-    )),
-    html_button(id = "solve-button-state", children = "solve", n_clicks = 0),
-    dcc_markdown("## Results"),
-    dcc_markdown(id = "output-solution")
+    )
 end
 
 callback!(
     app,
     Output("output-solution", "children"),
     Input("solve-button-state", "n_clicks"),
-    State("input-x-start-pos", "value"),
-    State("input-x-final-pos", "value"),
-    State("input-x-velocity-init", "value"),
-    State("input-x-average-vel", "value"),
-    State("input-x-velocity-final", "value"),
-    # State("input-y-start-pos", "value"),
-    # State("input-y-velocity-init", "value"),
-    # State("input-y-velocity-final", "value"),
+    State("input-start-pos", "value"),
+    State("input-final-pos", "value"),
+    State("input-velocity-init", "value"),
+    State("input-average-vel", "value"),
+    State("input-velocity-final", "value"),
     State("input-time", "value"),
     State("input-acceleration", "value"),
 ) do clicks,
-xinit_pos,
-xfinal_pos,
-xinit_vel,
-xavg_vel,
-xfinal_vel,
+init_pos,
+final_pos,
+init_vel,
+avg_vel,
+final_vel,
 # yinit_pos, yinit_vel, yfinal_vel,
 time,
 acceleration
 
     # dictionary to hold given |initial_conditions|
     initial_conditions = Dict(
-        :x₀ => xinit_pos,
-        :x => xfinal_pos,
-        :v₀ => xinit_vel,
-        :v̄ => xavg_vel,
-        :v => xfinal_vel,
-        # yinit_pos,
-        # yinit_vel,
-        # yfinal_vel,
+        :x₀ => init_pos,
+        :x => final_pos,
+        :v₀ => init_vel,
+        :v̄ => avg_vel,
+        :v => final_vel,
         :t => time,
         :a => acceleration,
     )
 
     solutions = Solver.solve(initial_conditions)
-
-    conditions = ""
-    for (key, value) in initial_conditions
-        conditions *= "
-        $key:\t$value
-        "
-    end
 
     solns = ""
     for (key, value) in solutions
@@ -146,10 +105,7 @@ acceleration
     end
 
     return "
-    ### Initial Conditions Given -
-    $conditions
-
-    ### Solutions -
+    ## Solutions -
     $solns
     "
 end
