@@ -1,10 +1,16 @@
 module Basics
 
 using Dash, DashCoreComponents, DashHtmlComponents
-include("Units.jl")
+include("common/CommonUnits.jl")
 
-export basic_layout
 
+export basic_layout, basic_layout_find
+
+"""
+    basic_layout()
+
+Produces a html table containing FIELD, VALUE, UNIT data cells.
+"""
 function basic_layout()
     html_table(
         children = [
@@ -15,8 +21,9 @@ function basic_layout()
                         children = [
                             html_th("Field"),
                             html_th("Value"),
-                            html_th("Unit (distance)"),
+                            html_th("Unit (length)"),
                             html_th("Unit (time)"),
+                            html_th("Find"),
                         ],
                     ),
                 ],
@@ -27,22 +34,26 @@ function basic_layout()
                         children = [
                             html_th("x₀ : "),
                             html_td(dcc_input(
-                                id = "input-start-pos",
-                                value = nothing,
+                                id = "input-basic-pos-init",
+                                value = 0,
                                 type = "number",
                                 placeholder = "Initial Position",
                             ),),
                             html_td(dcc_dropdown(
-                                id = "input-start-pos-unit",
+                                id = "input-basic-pos-init-udist",
                                 options = [
-                                    (label = i, value = i) for i in Units.length_units
+                                    (label = string(k), value = string(v))
+                                    for (k,v) in CommonUnits.length_units
                                 ],
-                                value = "meter (m)",
+                                value = "m",
                                 style = (
                                     width = "100%",
-                                    display = "inline-table",
-                                    backgroundColor = "Gainsboro",
-                                ),
+                                    display = "inline-table",                                ),
+                            ),),
+                            html_td(),
+                            html_td(dcc_checklist(
+                                id = "input-basic-pos-init-find",
+                                options = [(label = "", value = "find")],
                             ),),
                         ],
                     ),
@@ -50,22 +61,27 @@ function basic_layout()
                         children = [
                             html_th("x : "),
                             html_td(dcc_input(
-                                id = "input-final-pos",
+                                id = "input-basic-pos-final",
                                 value = nothing,
                                 type = "number",
                                 placeholder = "Final Position",
                             ),),
                             html_td(dcc_dropdown(
-                                id = "input-final-pos-unit",
+                                id = "input-basic-pos-final-udist",
                                 options = [
-                                    (label = i, value = i) for i in Units.length_units
+                                    (label = string(k), value = string(v))
+                                    for (k,v) in CommonUnits.length_units
                                 ],
-                                value = "meter (m)",
+                                value = "m",
                                 style = (
                                     width = "100%",
                                     display = "inline-table",
-                                    backgroundColor = "LavenderBlush",
                                 ),
+                            ),),
+                            html_td(),
+                            html_td(dcc_checklist(
+                                id = "input-basic-pos-find",
+                                options = [(label = "", value = "find")],
                             ),),
                         ],
                     ),
@@ -73,69 +89,38 @@ function basic_layout()
                         children = [
                             html_th("v₀ : "),
                             html_td(dcc_input(
-                                id = "input-velocity-init",
+                                id = "input-basic-velocity-init",
                                 value = nothing,
                                 type = "number",
                                 placeholder = "Initial Velocity",
                             ),),
                             html_td(dcc_dropdown(
-                                id = "input-velocity-init-unit-d",
+                                id = "input-basic-velocity-init-udist",
                                 options = [
-                                    (label = i, value = i) for i in Units.length_units
+                                    (label = string(k), value = string(v))
+                                    for (k,v) in CommonUnits.length_units
                                 ],
-                                value = "meter (m)",
+                                value = "m",
                                 style = (
                                     width = "100%",
                                     display = "inline-table",
-                                    backgroundColor = "Gainsboro",
                                 ),
                             ),),
                             html_td(dcc_dropdown(
-                                id = "input-velocity-init-unit-t",
+                                id = "input-basic-velocity-init-utime",
                                 options = [
-                                    (label = i, value = i) for i in Units.time_units
+                                    (label = string(k), value = string(v))
+                                    for (k,v) in CommonUnits.time_units
                                 ],
-                                value = "seconds (s)",
+                                value = "s",
                                 style = (
                                     width = "100%",
                                     display = "inline-table",
-                                    backgroundColor = "Gainsboro",
                                 ),
                             ),),
-                        ],
-                    ),
-                    html_tr(
-                        children = [
-                            html_th("v̄ : "),
-                            html_td(dcc_input(
-                                id = "input-average-vel",
-                                value = nothing,
-                                type = "number",
-                                placeholder = "Average Velocity",
-                            ),),
-                            html_td(dcc_dropdown(
-                                id = "input-average-vel-unit-d",
-                                options = [
-                                    (label = i, value = i) for i in Units.length_units
-                                ],
-                                value = "meter (m)",
-                                style = (
-                                    width = "100%",
-                                    display = "inline-table",
-                                    backgroundColor = "LavenderBlush",
-                                ),
-                            ),),
-                            html_td(dcc_dropdown(
-                                id = "input-average-vel-unit-t",
-                                options = [
-                                    (label = i, value = i) for i in Units.time_units
-                                ],
-                                value = "seconds (s)",
-                                style = (
-                                    width = "100%",
-                                    display = "inline-table",
-                                    backgroundColor = "LavenderBlush",
-                                ),
+                            html_td(dcc_checklist(
+                                id = "input-basic-velocity-init-find",
+                                options = [(label = "", value = "find")],
                             ),),
                         ],
                     ),
@@ -143,34 +128,77 @@ function basic_layout()
                         children = [
                             html_th("v : "),
                             html_td(dcc_input(
-                                id = "input-velocity-final",
+                                id = "input-basic-velocity-final",
                                 value = nothing,
                                 type = "number",
                                 placeholder = "Final Velocity",
                             ),),
                             html_td(dcc_dropdown(
-                                id = "input-velocity-final-unit-d",
+                                id = "input-basic-velocity-final-udist",
                                 options = [
-                                    (label = i, value = i) for i in Units.length_units
+                                    (label = string(k), value = string(v))
+                                    for (k,v) in CommonUnits.length_units
                                 ],
-                                value = "meter (m)",
+                                value = "m",
                                 style = (
                                     width = "100%",
                                     display = "inline-table",
-                                    backgroundColor = "Gainsboro",
                                 ),
                             ),),
                             html_td(dcc_dropdown(
-                                id = "input-velocity-final-unit-t",
+                                id = "input-basic-velocity-final-utime",
                                 options = [
-                                    (label = i, value = i) for i in Units.time_units
+                                    (label = string(k), value = string(v))
+                                    for (k,v) in CommonUnits.time_units
                                 ],
-                                value = "seconds (s)",
+                                value = "s",
                                 style = (
                                     width = "100%",
                                     display = "inline-table",
-                                    backgroundColor = "Gainsboro",
                                 ),
+                            ),),
+                            html_td(dcc_checklist(
+                                id = "input-basic-velocity-final-find",
+                                options = [(label = "", value = "find")],
+                            ),),
+                        ],
+                    ),
+                    html_tr(
+                        children = [
+                            html_th("v̄ : "),
+                            html_td(dcc_input(
+                                id = "input-basic-velocity-avg",
+                                value = nothing,
+                                type = "number",
+                                placeholder = "Average Velocity",
+                            ),),
+                            html_td(dcc_dropdown(
+                                id = "input-basic-velocity-avg-udist",
+                                options = [
+                                    (label = string(k), value = string(v))
+                                    for (k,v) in CommonUnits.length_units
+                                ],
+                                value = "m",
+                                style = (
+                                    width = "100%",
+                                    display = "inline-table",
+                                ),
+                            ),),
+                            html_td(dcc_dropdown(
+                                id = "input-basic-velocity-avg-utime",
+                                options = [
+                                    (label = string(k), value = string(v))
+                                    for (k,v) in CommonUnits.time_units
+                                ],
+                                value = "s",
+                                style = (
+                                    width = "100%",
+                                    display = "inline-table",
+                                ),
+                            ),),
+                            html_td(dcc_checklist(
+                                id = "input-basic-velocity-avg-find",
+                                options = [(label = "", value = "find")],
                             ),),
                         ],
                     ),
@@ -178,23 +206,27 @@ function basic_layout()
                         children = [
                             html_th("t : "),
                             html_td(dcc_input(
-                                id = "input-time",
+                                id = "input-basic-time",
                                 value = nothing,
                                 type = "number",
                                 placeholder = "Time",
                             ),),
                             html_td(),
                             html_td(dcc_dropdown(
-                                id = "input-time-unit-t",
+                                id = "input-basic-time-utime",
                                 options = [
-                                    (label = i, value = i) for i in Units.time_units
+                                    (label = string(k), value = string(v))
+                                    for (k,v) in CommonUnits.time_units
                                 ],
-                                value = "seconds (s)",
+                                value = "s",
                                 style = (
                                     width = "100%",
                                     display = "inline-table",
-                                    backgroundColor = "LavenderBlush",
                                 ),
+                            ),),
+                            html_td(dcc_checklist(
+                                id = "input-basic-time-find",
+                                options = [(label = "", value = "find")],
                             ),),
                         ],
                     ),
@@ -202,35 +234,38 @@ function basic_layout()
                         children = [
                             html_th("a : "),
                             html_td(dcc_input(
-                                id = "input-acceleration",
+                                id = "input-basic-acceleration",
                                 value = nothing,
                                 type = "number",
                                 placeholder = "Acceleration",
                             ),),
                             html_td(dcc_dropdown(
-                                id = "input-acceleration-unit-d",
+                                id = "input-basic-acceleration-udist",
                                 options = [
-                                    (label = i, value = i) for i in Units.length_units
+                                    (label = string(k), value = string(v))
+                                    for (k,v) in CommonUnits.length_units
                                 ],
-                                value = "meter (m)",
+                                value = "m",
                                 style = (
                                     width = "100%",
                                     display = "inline-table",
-                                    backgroundColor = "Gainsboro",
                                 ),
                             ),),
                             html_td(dcc_dropdown(
-                                id = "input-acceleration-unit-t",
+                                id = "input-basic-acceleration-utime",
                                 options = [
-                                    (label = i, value = i)
-                                    for i in Units.time_squared_units
+                                    (label = string(k,"^2"), value = string(v))
+                                    for (k,v) in CommonUnits.time_squared_units
                                 ],
-                                value = "seconds (s)",
+                                value = "s",
                                 style = (
                                     width = "100%",
                                     display = "inline-table",
-                                    backgroundColor = "Gainsboro",
                                 ),
+                            ),),
+                            html_td(dcc_checklist(
+                                id = "input-basic-acceleration-find",
+                                options = [(label = "", value = "find")],
                             ),),
                         ],
                     ),
@@ -238,6 +273,6 @@ function basic_layout()
             ),
         ],
     )
-end
+end # function basic_layout
 
 end # module Basics
