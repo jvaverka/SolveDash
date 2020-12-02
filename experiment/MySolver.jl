@@ -14,6 +14,8 @@ function solver_base(ic::MyConditions.BaseConditions)
     solns = Dict()
 
     if a.find
+        
+        """ try solving v = v₀ + at for a """
         if hasvalue([v, v₀, t]) && hasunit([v, v₀, t])
             convert_field_value!(v, a)
             convert_field_value!(v₀, a)
@@ -21,6 +23,9 @@ function solver_base(ic::MyConditions.BaseConditions)
 
             solns["acceleration"] = find_acceleration(v, v₀, t)
         end
+
+        """ try solving  """
+
     end
     if t.find
         # solve for time
@@ -67,8 +72,8 @@ function convert_field_value!(v::MyFields.VelocityField, a::MyFields.Acceleratio
 end
 
 """ Ensure all fields in a given list have units """
-function hasunit(fields::Array{<:MyFields.AbstractField})
-    for f in fields
+function hasunit(fields::Vector{<:MyFields.AbstractField})
+    for f ∈ fields
         if isnothing(f.unit)
             return false
         end
@@ -77,8 +82,8 @@ function hasunit(fields::Array{<:MyFields.AbstractField})
 end
 
 """ Ensure all fields in a given list have values """
-function hasvalue(fields::Array{<:MyFields.AbstractField})
-    for f in fields
+function hasvalue(fields::Vector{<:MyFields.AbstractField})
+    for f ∈ fields
         if isnothing(f.val)
             return false
         end
