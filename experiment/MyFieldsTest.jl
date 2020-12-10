@@ -8,80 +8,96 @@ import Unitful:
 
 @testset "field creation" begin
     # PositionField
-    p = PositionField(1mi, mi, false)
-    pu = PositionField(1u"mi", u"mi", false)
+    p = PositionField(float(1), mi, false)
+    pu = PositionField(1.0, u"mi", false)
     pn = PositionField(nothing, nothing, false)
     # TimeField
-    t = TimeField(1hr, hr, false)
-    tu = TimeField(1u"hr", u"hr", false)
+    t = TimeField(float(1), hr, false)
+    tu = TimeField(1.0, u"hr", false)
     tn = TimeField(nothing, nothing, false)
     # VelocityField
-    v = VelocityField(42mi/hr, mi/hr, mi, hr, true)
-    vu = VelocityField(42u"mi"/u"hr", u"mi"/u"hr", u"mi", u"hr", true)
+    v = VelocityField(float(42), mi/hr, mi, hr, true)
+    vu = VelocityField(42.0, u"mi"/u"hr", u"mi", u"hr", true)
     vn = VelocityField(nothing, nothing, nothing, nothing, true)
     # AccelerationField
-    a = AccelerationField(5ft/s^2, ft/s^2, ft, s, true)
-    au = AccelerationField(5u"ft"/u"s^2", u"ft"/u"s^2", u"ft", u"s", true)
+    a = AccelerationField(float(5), ft/s^2, ft, s, true)
+    au = AccelerationField(5.0, u"ft"/u"s^2", u"ft", u"s", true)
     an = AccelerationField(nothing, nothing, nothing, nothing, true)
 
     @testset "position freeunit assignment" begin
-        @test p.val |> ustrip == 1
+        @test p.val == 1
         @test p.unit == mi
-        @test p.find == false
+        @test !p.find
+        @test unify!(p) == 1609.344
     end
     @testset "time freeunit assignment" begin
-        @test t.val |> ustrip == 1
+        @test t.val == 1
         @test t.unit == hr
-        @test t.find == false
+        @test !t.find
+        @test unify!(t) == 3600
     end
     @testset "velocity freeunit assignment" begin
-        @test v.val |> ustrip == 42
+        @test v.val == 42
         @test v.unit == mi/hr
         @test v.lu == mi
         @test v.tu == hr
-        @test v.find == true
+        @test v.find
+        @test unify!(v) == 18.77568
     end
     @testset "acceleration freeunit assignment" begin
-        @test a.val |> ustrip == 5
+        @test a.val == 5
         @test a.unit == ft/s^2
         @test a.lu == ft
         @test a.tu == s
-        @test a.find == true
+        @test a.find
+        @test unify!(a) == 1.524
     end
     @testset "position ustring assignment" begin
-        @test pu.val |> ustrip == 1
+        @test pu.val == 1
         @test pu.unit == mi
-        @test pu.find == false
+        @test !pu.find
+        @test unify!(pu) == 1609.344
     end
     @testset "time ustring assignment" begin
-        @test tu.val |> ustrip == 1
+        @test tu.val == 1
         @test tu.unit == hr
-        @test tu.find == false
+        @test !tu.find
+        @test unify!(tu) == 3600
     end
     @testset "velocity ustring assignment" begin
-        @test vu.val |> ustrip == 42
+        @test vu.val == 42
         @test vu.unit == mi/hr
         @test vu.lu == mi
         @test vu.tu == hr
-        @test vu.find == true
+        @test vu.find
+        @test unify!(vu) == 18.77568
     end
     @testset "acceleration ustring assignment" begin
-        @test au.val |> ustrip == 5
+        @test au.val == 5
         @test au.unit == ft/s^2
         @test au.lu == ft
         @test au.tu == s
-        @test au.find == true
+        @test au.find
+        @test unify!(au) == 1.524
     end
     @testset "position nothing assignment" begin
-        @test isnothing(pn.val)  && isnothing(pn.unit) && !pn.find == true
+        @test isnothing(pn.val) &&
+              isnothing(pn.unit) && !pn.find
     end
     @testset "time nothing assignment" begin
-        @test isnothing(tn.val)  && isnothing(tn.unit) && !tn.find == true
+        @test isnothing(tn.val) &&
+              isnothing(tn.unit) && !tn.find
     end
     @testset "velocity nothing assignment" begin
-        @test isnothing(vn.val) && isnothing(vn.unit) && isnothing(vn.lu) && isnothing(vn.tu) && vn.find
+        @test isnothing(vn.val) &&
+              isnothing(vn.unit) &&
+              isnothing(vn.lu) &&
+              isnothing(vn.tu) && vn.find
     end
     @testset "acceleration nothing assignment" begin
-        @test isnothing(an.val) && isnothing(an.unit) && isnothing(an.lu) && isnothing(an.tu) && an.find
+        @test isnothing(an.val) &&
+              isnothing(an.unit) &&
+              isnothing(an.lu) &&
+              isnothing(an.tu) && an.find
     end
 end

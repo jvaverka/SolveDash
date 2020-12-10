@@ -1,36 +1,43 @@
 module MySolver
-   
+
 using MyConditions
 using MyFields
 using Parameters
 
 
-export solver_base, find_acceleration, convert_field_value!, convert_field_values!, revert_units!, hasunit, hasvalue
+export mysolve, find_acceleration, revert_units, hasunit, hasvalue
 
-function solver_base(ic::MyConditions.BaseConditions)
-    
-    @unpack x₀, x, v₀, v, v̄, t, a = ic
+function mysolve(ic::MyConditions.BaseConditions)
 
     solns = Dict()
+    @unpack x₀, x, v₀, v, v̄, t, a = ic
+    unify!([x₀, x, v₀, v, v̄, t, a])
 
     if a.find
-        if hasvalue([v, v₀, t]) && hasunit([v, v₀, t])
-            convert_field_values!([v, v₀, t], a)
-            solns["acceleration"] = find_acceleration(v, v₀, t)
+        acc_soln = ""
+        if !hasunit(a)
+            acc_soln = "missing unit"
+        elseif hasvalue([v, v₀, t])
+            acc_soln = find_acceleration(v,v₀,t)*a.unit
+        elseif hasvalue([x₀, x, v₀, t])
+            acc_soln = find_acceleration(x,x₀,v₀,t)*a.unit
+        elseif hasvalue([v, v₀, x, x₀])
+            acc_soln = find_acceleration(v,v₀,x,x₀)*a.unit
+        else
+            acc_soln = "not enough info to solve"
         end
-        if hasvalue([x₀, x, v₀, t]) && hasunit([x₀, x, v₀, t])
-            convert_field_values!([x₀, x, v₀, t], a)
-            solns["acceleration"] = find_acceleration(x, x₀, v₀, t)
-        end
-        if hasvalue([v, v₀, x, x₀]) && hasunit([v, v₀, x, x₀])
-            convert_field_values!([v, v₀, x, x₀], a)
-            solns["acceleration"] = find_acceleration(v, v₀, x, x₀)
-        end
+        solns["acceleration"] = acc_soln
     end
     if t.find
-        if hasvalue([v, v₀, a]) && hasunit([v, v₀, a])
-            convert_field_values!([v, v₀, a], t)
+        time_soln = ""
+        if !hasunit(t)
+            time_soln = "missing unit"
+        elseif hasvalue([v, v₀, a])
+            time_soln = find_time(v, v₀, a)*t.unit
+        else
+            time_soln = "not enough info to solve"
         end
+        solns["time"] = time_soln
     end
     if v̄.find
         # solve for average velocity
@@ -85,41 +92,9 @@ function find_time(v::VelocityField, v₀::VelocityField, a::AccelerationField)
     (v.val - v₀.val) / a.val
 end
 
-" Convert field values for all fields in a given vector "
-function convert_field_values!(fields::Vector{<:AbstractField}, target::T) where T<:AbstractField
-    for field ∈ fields
-        convert_field_value!(field, target)
-    end
-end
-
-" Convert PositionField units to match AccelerationField "
-function convert_field_value!(p::PositionField, a::AccelerationField)
-    setfield!(p, :val, p.val |> a.lu)
-end
-
-" Convert TimeField units to match AccelerationField "
-function convert_field_value!(t::TimeField, a::AccelerationField)
-    setfield!(t, :val, t.val |> a.tu)
-end
-
-" Convert VelocityField units to match AccelerationField "
-function convert_field_value!(v::VelocityField, a::AccelerationField)
-    setfield!(v, :val, v.val |> a.lu/a.tu)
-end
-
-" Convert VelocityField units to match TimeField "
-function convert_field_value!(v::VelocityField, t::TimeField)
-    setfield!(v, :val, v.val |> v.lu/t.unit)
-end
-
-" Convert AccelerationField units to match TimeField "
-function convert_field_value!(a::AccelerationField, t::TimeField)
-    setfield!(a, :val, a.val |> a.lu/t.unit^2)
-end
-
 " Revert field value back to original units "
-function revert_units!(field::T) where T<:AbstractField
-    setfield!(field, :val, field.val |> field.unit)
+function revert_units(field::T) where T<:AbstractField
+    field.val * field.unit
 end
 
 " Ensure all fields in a given list have units "
