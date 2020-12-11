@@ -15,6 +15,7 @@ TODO:
 * change solution dict to a struct |similar| to initial conditions
 * loop solver logic until all fields found or max count reached
 * add unit tests for each equation
+* add solver to other initial condition types
 =#
 function mysolve(ic::MyConditions.BaseConditions)
 
