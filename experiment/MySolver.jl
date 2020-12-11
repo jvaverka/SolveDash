@@ -134,7 +134,7 @@ function mysolve(ic::MyConditions.BaseConditions)
         end
         solns["initial_position"] = ipos_soln
     end
-end
+end # function mysolve
 # Solver Equations ###################################
 " vₓ = vₓ₀ + aₓt "
 function find_acceleration(
@@ -306,4 +306,5 @@ function hasvalue(fields::Vector{<:AbstractField})
     end
     return true
 end
+
 end # MySolver
