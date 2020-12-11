@@ -3,8 +3,8 @@ module MyFields
 using Unitful
 import Unitful: m, s
 
-export AbstractField,
-    PositionField, TimeField, VelocityField, AccelerationField, unify!
+export AbstractField, PositionField, TimeField, VelocityField, AccelerationField,
+    unify!
 
 abstract type AbstractField end
 
