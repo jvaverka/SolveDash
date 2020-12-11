@@ -1,4 +1,4 @@
-# push!(LOAD_PATH, "/home/jake/dev/data/src/SolveDash/experiment/")
+push!(LOAD_PATH, "/home/jake/dev/data/src/SolveDash/experiment/")
 using MyConditions
 using MyFields
 using MySolver
