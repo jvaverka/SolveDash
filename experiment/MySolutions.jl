@@ -1,6 +1,6 @@
 module MySolutions
 
-using MyConditions
+include("MyConditions.jl")
 export AbstractSolutionSet, BaseSolutionSet, populate!, issolved
 
 mutable struct SomeSolution
@@ -30,7 +30,7 @@ mutable struct BaseSolutionSet <: AbstractSolutionSet
     end
 end
 
-function populate!(b::BaseSolutionSet, a::BaseConditions)
+function populate!(b::BaseSolutionSet, a::MyConditions.BaseConditions)
     b.x₀ = a.x₀.val
     b.x = a.x.val
     b.v₀ = a.v₀.val
