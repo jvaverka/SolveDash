@@ -39,7 +39,9 @@ mutable struct TwoDKinematicConditions <: AbstractConditions
 end
 
 " Unify all |AbstractFields| in a given set of |AbstractConditions| "
-unify_conditions!(ic<:AbstractConditions) = unify_conditions!(ic)
+function unify_conditions!(ic::T) where T<:AbstractConditions
+    unify_conditions!(ic)
+end
 
 " Unify all |AbstractFields| in a given set of |BaseConditions| "
 function unify_conditions!(ic::BaseConditions)
