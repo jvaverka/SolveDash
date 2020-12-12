@@ -21,7 +21,7 @@ function mysolve(ic::BaseConditions)
     @unpack x₀, x, v₀, v, v̄, t, a = ic
     unify!([x₀, x, v₀, v, v̄, t, a])
 
-    while !issolved(sol) || niter < 3
+    while !issolved(sol) && niter < 3
         if a.find && isnothing(a.val)
             if !hasunit(a)
                 sol.a = nothing
@@ -325,12 +325,17 @@ end
 " Ensure all fields in a given list have units "
 function hasunit(fields::Vector{<:AbstractField})
     for f ∈ fields
-        if isnothing(f.unit)
-            return false
-        end
+        hasunit(f)
     end
-    return true
 end
+" Ensure |PositionField| has units "
+hasunit(field::PositionField) = !isnothing(field.unit)
+" Ensure |TimeField| has units "
+hasunit(field::TimeField) = !isnothing(field.unit)
+" Ensure |VelocityField| has units "
+hasunit(field::VelocityField) = !isnothing(field.unit)
+" Ensure |AccelerationField| has units "
+hasunit(field::AccelerationField) = !isnothing(field.unit)
 " Ensure all fields in a given list have values "
 function hasvalue(fields::Vector{<:AbstractField})
     for f ∈ fields
