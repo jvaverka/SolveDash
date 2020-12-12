@@ -20,14 +20,6 @@ b = BaseConditions(
         AccelerationField(nothing, m/s^2, m, s, true))
 # unpack for easier acccess to fields
 @unpack x₀, x, v₀, v, v̄, t, a = b
-# create some stand alone fields
-pf1 = PositionField(1.0, m, false)
-pf2 = PositionField(10.0, m, false)
-vf1 = VelocityField(2.0, m/s, m, s, false)
-vf2 = VelocityField(400.0, m/s, m, s, false)
-vf3 = VelocityField(55.0, m/s, m, s, false)
-tf1 = TimeField(5.0, s, false)
-af1 = AccelerationField(12.0, m/s^2, m, s, true)
 # begin tests
 @testset "solver utilities" begin
     @testset "hasunit" begin
@@ -47,12 +39,174 @@ af1 = AccelerationField(12.0, m/s^2, m, s, true)
 end # utilities testset
 @testset "solver functions" begin
     @testset "find acceleration" begin
-        unify!([v, v₀, t])
-        @test find_acceleration(v, v₀, t) ≈ 56.4
-        @test find_acceleration(pf2, pf1, vf1, tf1) ≈ -0.08
-        @test find_acceleration(vf3, vf1, pf2, pf1) ≈ 167.83333333333334
+        @testset " vₓ = vₓ₀ + aₓt " begin
+            unify!([v, v₀, t])
+            @test find_acceleration(v, v₀, t) ≈ 56.4
+            @test find_acceleration(
+                VelocityField(35.0,m/s,m,s,false),
+                VelocityField(5.0,m/s,m,s,false),
+                TimeField(24,s,false)) ≈ 1.25
+            @test find_acceleration(
+                VelocityField(350.0,m/s,m,s,false),
+                VelocityField(50.0,m/s,m,s,false),
+                TimeField(24,s,false)) ≈ 12.5
+        end
+        @testset " x = x₀ + vₓ₀t + (1//2)aₓt² " begin
+            @test find_acceleration(
+                PositionField(2.0,m,false),
+                PositionField(0.0,m,false),
+                VelocityField(0.0,m/s,m,s,false),
+                TimeField(1.0,s,false)) ≈ 4.0
+            @test find_acceleration(
+                PositionField(600.0,m,false),
+                PositionField(0.0,m,false),
+                VelocityField(1.0,m/s,m,s,false),
+                TimeField(10.0,s,false)) ≈ 11.8
+            @test find_acceleration(
+                PositionField(600.0,m,false),
+                PositionField(10.0,m,false),
+                VelocityField(11.0,m/s,m,s,false),
+                TimeField(10.0,s,false)) ≈ 9.6
+        end
+        @testset " vₓ² = vₓ₀² + 2aₓ𝚫x " begin
+            @test find_acceleration(
+                VelocityField(5.0,m/s,m,s,false),
+                VelocityField(0.0,m/s,m,s,false),
+                PositionField(5.0,m,false),
+                PositionField(0.0,m,false)) ≈ 2.5
+            @test find_acceleration(
+                VelocityField(5.0,m/s,m,s,false),
+                VelocityField(1.0,m/s,m,s,false),
+                PositionField(5.0,m,false),
+                PositionField(1.0,m,false)) ≈ 3.0
+            @test find_acceleration(
+                VelocityField(8.0,m/s,m,s,false),
+                VelocityField(2.0,m/s,m,s,false),
+                PositionField(10.0,m,false),
+                PositionField(0.0,m,false)) ≈ 3.0
+        end
     end
     @testset "find time" begin
-        @test
+        @testset " vₓ = vₓ₀ + aₓt " begin
+            @test find_time(
+                VelocityField(4.0,m/s,m,s,false),
+                VelocityField(0.0,m/s,m,s,false),
+                AccelerationField(32,m/s^2,m,s,false)) ≈ 0.125
+            @test find_time(
+                VelocityField(20.0,m/s,m,s,false),
+                VelocityField(2.0,m/s,m,s,false),
+                AccelerationField(32,m/s^2,m,s,false)) ≈ 0.5625
+            @test find_time(
+                VelocityField(2_000.0,m/s,m,s,false),
+                VelocityField(0.0,m/s,m,s,false),
+                AccelerationField(32,m/s^2,m,s,false)) ≈ 62.5
+        end
+        @testset " v̄ = 𝚫x/𝚫t " begin
+            @test find_time(
+                PositionField(45.0,m,false),
+                PositionField(0.0,m,false),
+                VelocityField(45.0,m/s,m,s,false)) ≈ 1.0
+            @test find_time(
+                PositionField(1_000.0,m,false),
+                PositionField(37.0,m,false),
+                VelocityField(45.0,m/s,m,s,false)) ≈ 21.4
+            @test find_time(
+                PositionField(100.0,m,false),
+                PositionField(37.0,m,false),
+                VelocityField(14.0,m/s,m,s,false)) ≈ 4.5
+        end
+        @testset " a = 𝚫v/𝚫t " begin
+            @test find_time(
+                VelocityField(75.0,m/s,m,s,false),
+                VelocityField(0.0,m/s,m,s,false),
+                AccelerationField(10,m/s^2,m,s,false)) ≈ 7.5
+            @test find_time(
+                VelocityField(0.0,m/s,m,s,false),
+                VelocityField(100.0,m/s,m,s,false),
+                AccelerationField(-10,m/s^2,m,s,false)) ≈ 10.0
+            @test find_time(
+                VelocityField(25.0,m/s,m,s,false),
+                VelocityField(1_000.0,m/s,m,s,false),
+                AccelerationField(-10,m/s^2,m,s,false)) ≈ 97.5
+        end
+    end
+    @testset "find average velocity" begin
+        @testset " v̄ = 𝚫x/t " begin
+            @test find_average_velocity(
+                PositionField(110.0,m,false),
+                PositionField(0.0,m,false),
+                TimeField(10.0,s,false)) ≈ 11.0
+        end
+        @testset " v̄ = 𝚫v/t " begin
+            @test find_average_velocity(
+                VelocityField(180.0,m/s,m,s,false),
+                VelocityField(60.0,m/s,m,s,false),
+                TimeField(6.0,s,false)) ≈ 20.0
+        end
+    end
+    @testset "find final velocity" begin
+        @testset " v = v₀ + at " begin
+            @test find_velocity(
+                VelocityField(4.0,m/s,m,s,false),
+                AccelerationField(42.0,m/s^2,m,s,false),
+                TimeField(4,s,false)) ≈ 172
+        end
+        @testset " v² = v₀² + 2a𝚫x " begin
+            find_velocity(
+                VelocityField(0.0,m/s,m,s,false),
+                AccelerationField(1,m/s^2,m,s,false),
+                PositionField(9.0,m,false),
+                PositionField(0.0,m,false)) ≈ 1
+        end
+        @testset " x = ((v₀+v)/2)t " begin
+            @test find_velocity(
+            PositionField(12.0,m,false),
+            PositionField(0.0,m,false),
+            VelocityField(0.0,m/s,m,s,false),
+            TimeField(3.0,s,false)) ≈ 8
+        end
+    end
+    @testset "find initial velocity" begin
+        @testset " v̄ = (v₀+v)/t " begin
+            @test find_initial_velocity(
+                VelocityField(8.0,m/s,m,s,false),
+                VelocityField(0.0,m/s,m,s,false),
+                TimeField(3.0,s,false)) ≈ 24
+        end
+        @testset " v = v₀ + at " begin
+            @test find_initial_velocity(
+                VelocityField(30.0,m/s,m,s,false),
+                AccelerationField(3.0,m/s^2,m,s,false),
+                TimeField(4.0,s,false)) ≈ 18
+        end
+        @testset " v² = v₀² + 2a𝚫x " begin
+            @test find_initial_velocity(
+                VelocityField(6.0,m/s,m,s,false),
+                AccelerationField(4.0,m/s^2,m,s,false),
+                PositionField(4.0,m,false),
+                PositionField(0.0,m,false)) ≈ 2
+        end
+        @testset " 𝚫x = v₀t + 0.5at² " begin
+            @test find_initial_velocity(
+                PositionField(10.0,m,false),
+                PositionField(0.0,m,false),
+                TimeField(2,s,false),
+                AccelerationField(10,m/s^2,m,s,false)) ≈ -5
+        end
+        @testset " 𝚫x = ((v₀+v)/2)*t " begin
+            @test find_initial_velocity(
+                PositionField(300.0,m,false),
+                PositionField(0.0,m,false),
+                VelocityField(20.0,m/s,m,s,false),
+                TimeField(3.0,s,false)) ≈ 2
+        end
+    end
+    @testset "find final position" begin
+        @testset " v̄ = 𝚫x/t " begin
+            @test find_final_position(
+                VelocityField(),
+                PositionField(),
+                TimeField()) ≈ 0
+        end
     end
 end # functions testset
