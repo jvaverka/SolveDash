@@ -36,14 +36,7 @@ app.layout = html_div() do
                         children = "solve",
                         n_clicks = 0,
                     ),
-                    dcc_markdown("💯 𝕊𝕠𝕝𝕦𝕥𝕚𝕠𝕟 💯\n"),
-                    dcc_markdown(
-                        id = "output-solution",
-                        style = (
-                            width = "100%",
-                            display = "inline-block",
-                        ),
-                    ),
+                    dcc_markdown(id = "output-solution"),
                 ],
             ),
             dcc_tab(
@@ -168,28 +161,28 @@ acc, acc_udist, acc_utime, acc_find
 
     solutions = mysolve(initial_conditions)
 
-    result = ""
+    result = "### 💯 𝕊𝕠𝕝𝕦𝕥𝕚𝕠𝕟 💯\n"
 
     if isnothing(initial_conditions.x₀.val)
-        result *= "x₀ ⇒ $(solutions.x₀)\n"
+        result *= ">x₀ ⇒ $(solutions.x₀)  \n"
     end
     if isnothing(initial_conditions.x.val)
-        result *= "x ⇒ $(solutions.x)\n"
+        result *= ">x ⇒ $(solutions.x)  \n"
     end
     if isnothing(initial_conditions.v₀.val)
-        result *= "v₀ ⇒ $(solutions.v₀)\n"
+        result *= ">v₀ ⇒ $(solutions.v₀)  \n"
     end
     if isnothing(initial_conditions.v.val)
-        result *= "v ⇒ $(solutions.v)\n"
+        result *= ">v ⇒ $(solutions.v)  \n"
     end
     if isnothing(initial_conditions.v̄.val)
-        result *= "v̄ ⇒ $(solutions.v̄)\n"
+        result *= ">v̄ ⇒ $(solutions.v̄)  \n"
     end
     if isnothing(initial_conditions.t.val)
-        result *= "t ⇒ $(solutions.t)\n"
+        result *= ">t ⇒ $(solutions.t)  \n"
     end
     if isnothing(initial_conditions.a.val)
-        result *= "a ⇒ $(solutions.a)\n"
+        result *= ">a ⇒ $(solutions.a)  \n"
     end
 
     return result
