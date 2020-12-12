@@ -141,6 +141,7 @@ function mysolve(ic::MyConditions.BaseConditions)
         end
         niter += 1
     end
+    sol
 end # function mysolve
 # Solver Equations ###################################
 " vₓ = vₓ₀ + aₓt "
