@@ -193,7 +193,7 @@ function find_velocity(
 end
 " 𝚫x = ((v₀+v)/2)t "
 function find_velocity(
-    x::PositionField
+    x::PositionField,
     x₀::PositionField,
     v₀::VelocityField,
     t::TimeField)
@@ -238,7 +238,7 @@ end
 " v² = v₀² + 2a𝚫x "
 function find_final_position(
     v::VelocityField,
-    v₀::VeloctiyField,
+    v₀::VelocityField,
     a::AccelerationField,
     x₀::PositionField)
     ((v.val^2 - v₀.val^2)/(2*a.val)) + x₀.val
@@ -257,7 +257,7 @@ function find_final_position(
     v₀::VelocityField,
     v::VelocityField,
     t::TimeField)
-    ((v₀.val+v.val)/2)*t + x₀.val
+    ((v₀.val+v.val)/2)*t.val + x₀.val
 end
 " v̄ = 𝚫x/t "
 function find_initial_position(v̄::VelocityField,x::PositionField,t::TimeField)
