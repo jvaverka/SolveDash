@@ -35,7 +35,7 @@ function basic_layout()
                             html_th("x₀ : "),
                             html_td(dcc_input(
                                 id = "input-basic-pos-init",
-                                value = 0,
+                                value = 0.0,
                                 type = "number",
                                 placeholder = "Initial Position",
                             ),),
