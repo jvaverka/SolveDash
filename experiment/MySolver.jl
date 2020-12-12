@@ -74,8 +74,8 @@ function mysolve(ic::MyConditions.BaseConditions)
             fvel_soln = find_velocity(v₀,a,t)*v.unit
         elseif hasvalue([v₀,a,x,x₀])
             fvel_soln = find_velocity(v₀,a,x,x₀)*v.unit
-        elseif hasvalue([x,v₀,t])
-            fvel_soln = find_velocity(x,v₀,t)*v.unit
+        elseif hasvalue([x,x₀,v₀,t])
+            fvel_soln = find_velocity(x,x₀,v₀,t)*v.unit
         else
             fvel_soln = "not enough info to solve"
         end
@@ -191,9 +191,13 @@ function find_velocity(
     x₀::PositionField)
     √(v₀.val^2 + a.val*(x.val - x₀.val))
 end
-" x = ((v₀+v)/2)t "
-function find_velocity(x::PositionField,v₀::VelocityField,t::TimeField)
-    2*(x.val/t.val) - v₀.val
+" 𝚫x = ((v₀+v)/2)t "
+function find_velocity(
+    x::PositionField
+    x₀::PositionField,
+    v₀::VelocityField,
+    t::TimeField)
+    2*((x.val-x₀.val)/t.val) - v₀.val
 end
 " v̄ = (v₀+v)/t "
 function find_initial_velocity(v̄::VelocityField,v::VelocityField,t::TimeField)
