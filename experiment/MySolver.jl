@@ -193,7 +193,7 @@ function find_velocity(
 end
 " x = ((v₀+v)/2)t "
 function find_velocity(x::PositionField,v₀::VelocityField,t::TimeField)
-    2*(x.val/t.val) - v₀
+    2*(x.val/t.val) - v₀.val
 end
 " v̄ = (v₀+v)/t "
 function find_initial_velocity(v̄::VelocityField,v::VelocityField,t::TimeField)
