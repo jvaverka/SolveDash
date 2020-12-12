@@ -3,136 +3,143 @@ module MySolver
 using MyConditions
 using MyFields
 using Parameters
-
+using Unitful
 
 export mysolve, # solver
     find_acceleration, find_time, find_average_velocity, find_velocity,  # eq
     find_initial_velocity, find_final_position, find_initial_position,  # eq
     revert_units, hasunit, hasvalue  # utilities
 
-#=
-TODO:
-* change solution dict to a struct |similar| to initial conditions
-* loop solver logic until all fields found or max count reached
-* add unit tests for each equation
-* add solver to other initial condition types
-=#
+
 function mysolve(ic::MyConditions.BaseConditions)
 
-    solns = Dict()
+    sol = BaseSolutionSet()
+    populate!(sol,ic)
+    niter = 0
+
     @unpack x₀, x, v₀, v, v̄, t, a = ic
     unify!([x₀, x, v₀, v, v̄, t, a])
 
-    if a.find
-        acc_soln = ""
-        if !hasunit(a)
-            acc_soln = "missing unit"
-        elseif hasvalue([v,v₀,t])
-            acc_soln = find_acceleration(v,v₀,t)*a.unit
-        elseif hasvalue([x₀,x,v₀,t])
-            acc_soln = find_acceleration(x,x₀,v₀,t)*a.unit
-        elseif hasvalue([v,v₀,x,x₀])
-            acc_soln = find_acceleration(v,v₀,x,x₀)*a.unit
-        else
-            acc_soln = "not enough info to solve"
+    while !issolved(sol) || niter < 3
+        if a.find && isnothing(a.val)
+            if !hasunit(a)
+                sol.a = nothing
+            elseif hasvalue([v,v₀,t])
+                sol.a = find_acceleration(v,v₀,t)* u"m"/u"s^2" |> a.unit
+            elseif hasvalue([x₀,x,v₀,t])
+                sol.a = find_acceleration(x,x₀,v₀,t)* u"m"/u"s^2" |> a.unit
+            elseif hasvalue([v,v₀,x,x₀])
+                sol.a = find_acceleration(v,v₀,x,x₀)* u"m"/u"s^2" |> a.unit
+            else
+                sol.a = nothing
+            end
+            if !isnothing(sol.a)
+                a.find = false
+            end
         end
-        solns["acceleration"] = acc_soln
-    end
-    if t.find
-        time_soln = ""
-        if !hasunit(t)
-            time_soln = "missing unit"
-        elseif hasvalue([v,v₀,a])
-            time_soln = find_time(v,v₀,a)*t.unit
-        elseif hasvalue([x,x₀,v̄])
-            time_soln = find_time(x,x₀,v̄)*t.unit
-        elseif hasvalue([v,v₀,a])
-            time_soln = find_time(v,v₀,a)*t.unit
-        else
-            time_soln = "not enough info to solve"
+        if t.find && isnothing(t.val)
+            if !hasunit(t)
+                sol.t = nothing
+            elseif hasvalue([v,v₀,a])
+                sol.t = find_time(v,v₀,a)* u"s" |> t.unit
+            elseif hasvalue([x,x₀,v̄])
+                sol.t = find_time(x,x₀,v̄)* u"s" |> t.unit
+            elseif hasvalue([v,v₀,a])
+                sol.t = find_time(v,v₀,a)* u"s" |> t.unit
+            else
+                sol.t = nothing
+            end
+            if !isnothing(sol.t)
+                t.find = false
+            end
         end
-        solns["time"] = time_soln
-    end
-    if v̄.find
-        avel_soln = ""
-        if !hasunit(v̄)
-            avel_soln = "missing unit"
-        elseif hasvalue([x,x₀,t])
-            avel_soln = find_average_velocity(x,x₀,t)*v̄.unit
-        elseif hasvalue([v,v₀,t])
-            avel_soln = find_average_velocity(v,v₀,t)*v̄.unit
-        else
-            avel_soln = "not enough info to solve"
+        if v̄.find && isnothing(v̄.val)
+            if !hasunit(v̄)
+                sol.v̄ = nothing
+            elseif hasvalue([x,x₀,t])
+                sol.v̄ = find_average_velocity(x,x₀,t)*u"m"/u"s" |> v̄.unit
+            elseif hasvalue([v,v₀,t])
+                sol.v̄ = find_average_velocity(v,v₀,t)*u"m"/u"s" |> v̄.unit
+            else
+                sol.v̄ = nothing
+            end
+            if !isnothing(sol.v̄)
+                v̄.find = false
+            end
         end
-        solns["average_velocity"] = avel_soln
-    end
-    if v.find
-        fvel_soln = ""
-        if !hasunit(v)
-            fvel_soln = "missing unit"
-        elseif hasvalue([v₀,a,t])
-            fvel_soln = find_velocity(v₀,a,t)*v.unit
-        elseif hasvalue([v₀,a,x,x₀])
-            fvel_soln = find_velocity(v₀,a,x,x₀)*v.unit
-        elseif hasvalue([x,x₀,v₀,t])
-            fvel_soln = find_velocity(x,x₀,v₀,t)*v.unit
-        else
-            fvel_soln = "not enough info to solve"
+        if v.find && isnothing(v.val)
+            if !hasunit(v)
+                sol.v = nothing
+            elseif hasvalue([v₀,a,t])
+                sol.v = find_velocity(v₀,a,t)* u"m"/u"s" |> v.unit
+            elseif hasvalue([v₀,a,x,x₀])
+                sol.v = find_velocity(v₀,a,x,x₀)* u"m"/u"s" |> v.unit
+            elseif hasvalue([x,x₀,v₀,t])
+                sol.v = find_velocity(x,x₀,v₀,t)* u"m"/u"s" |> v.unit
+            else
+                sol.v = "not enough info to solve"
+            end
+            if !isnothing(sol.v)
+                v.find = false
+            end
         end
-        solns["final_velocity"] = fvel_soln
-    end
-    if v₀.find
-        ivel_soln = ""
-        if !hasunit(v₀)
-            ivel_soln = "missing unit"
-        elseif hasvalue([v̄,v,t])
-            ivel_soln = find_initial_velocity(v̄,v,t)*v₀.unit
-        elseif hasvalue([v,a,t])
-            ivel_soln = find_initial_velocity(v,a,t)*v₀.unit
-        elseif hasvalue([v,a,x,x₀])
-            ivel_soln = find_initial_velocity(v,a,x,x₀)*v₀.unit
-        elseif hasvalue([x,x₀,t,a])
-            ivel_soln = find_initial_velocity(x,x₀,t,a)*v₀.unit
-        elseif hasvalue([x,x₀,v,t])
-            ivel_soln = find_initial_velocity(x,x₀,v,t)*v₀.unit
-        else
-            ivel_soln = "not enough info to solve"
+        if v₀.find && isnothing(v₀.val)
+            if !hasunit(v₀)
+                sol.v₀ = nothing
+            elseif hasvalue([v̄,v,t])
+                sol.v₀ = find_initial_velocity(v̄,v,t)* u"m"/u"s" |> v₀.unit
+            elseif hasvalue([v,a,t])
+                sol.v₀ = find_initial_velocity(v,a,t)* u"m"/u"s" |> v₀.unit
+            elseif hasvalue([v,a,x,x₀])
+                sol.v₀ = find_initial_velocity(v,a,x,x₀)* u"m"/u"s" |> v₀.unit
+            elseif hasvalue([x,x₀,t,a])
+                sol.v₀ = find_initial_velocity(x,x₀,t,a)* u"m"/u"s" |> v₀.unit
+            elseif hasvalue([x,x₀,v,t])
+                sol.v₀ = find_initial_velocity(x,x₀,v,t)* u"m"/u"s" |> v₀.unit
+            else
+                sol.v₀ = nothing
+            end
+            if !isnothing(sol.v₀)
+                v₀.find = false
+            end
         end
-        solns["initial_velocity"] = ivel_soln
-    end
-    if x.find
-        fpos_soln = ""
-        if !hasunit(x)
-            fpos_soln = "missing unit"
-        elseif hasvalue([v̄,x₀,t])
-            fpos_soln = find_final_position(v̄,x₀,t)*x.unit
-        elseif hasvalue([v,v₀,a,x₀])
-            fpos_soln = find_final_position(v,v₀,a,x₀)*x.unit
-        elseif hasvalue([x₀,v₀,t,a])
-            fpos_soln = find_final_position(x₀,v₀,t,a)*x.unit
-        elseif hasvalue([x₀,v₀,v,t])
-            fpos_soln = find_final_position(x₀,v₀,v,t)*x.unit
-        else
-            fpos_soln = "not enough info to solve"
+        if x.find && isnothing(x.val)
+            if !hasunit(x)
+                sol.x = nothing
+            elseif hasvalue([v̄,x₀,t])
+                sol.x = find_final_position(v̄,x₀,t)* u"m" |> x.unit
+            elseif hasvalue([v,v₀,a,x₀])
+                sol.x = find_final_position(v,v₀,a,x₀)* u"m" |> x.unit
+            elseif hasvalue([x₀,v₀,t,a])
+                sol.x = find_final_position(x₀,v₀,t,a)* u"m" |> x.unit
+            elseif hasvalue([x₀,v₀,v,t])
+                sol.x = find_final_position(x₀,v₀,v,t)* u"m" |> x.unit
+            else
+                sol.x = nothing
+            end
+            if !isnothing(sol.x)
+                x.find = false
+            end
         end
-        solns["final_position"] = fpos_soln
-    end
-    if x₀.find
-        ipos_soln = ""
-        if !hasunit(x₀)
-            fpos_soln = "missing unit"
-        elseif hasvalue([v̄,x,t])
-            ipos_soln = find_initial_position(v̄,x,t)*x₀.unit
-        elseif hasvalue([v,v₀,a,x])
-            ipos_soln = find_initial_position(v,v₀,a,x)*x₀.unit
-        elseif hasvalue([x,v₀,t,a])
-            ipos_soln = find_initial_position(x,v₀,t,a)*x₀.unit
-        elseif hasvalue([x,v₀,v,t])
-            ipos_soln = find_initial_position(x,v₀,v,t)
-        else
-            ipos_soln = "not enough info to solve"
+        if x₀.find && isnothing(x₀.val)
+            if !hasunit(x₀)
+                sol.x₀ = nothing
+            elseif hasvalue([v̄,x,t])
+                sol.x₀ = find_initial_position(v̄,x,t)* u"m" |> x₀.unit
+            elseif hasvalue([v,v₀,a,x])
+                sol.x₀ = find_initial_position(v,v₀,a,x)* u"m" |> x₀.unit
+            elseif hasvalue([x,v₀,t,a])
+                sol.x₀ = find_initial_position(x,v₀,t,a)* u"m" |> x₀.unit
+            elseif hasvalue([x,v₀,v,t])
+                sol.x₀ = find_initial_position(x,v₀,v,t)* u"m" |> x₀.unit
+            else
+                sol.x₀ = "not enough info to solve"
+            end
+            if !isnothing(sol.x₀)
+                x₀.find = false
+            end
         end
-        solns["initial_position"] = ipos_soln
+        niter += 1
     end
 end # function mysolve
 # Solver Equations ###################################
