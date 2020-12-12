@@ -227,7 +227,7 @@ end
 function find_initial_velocity(
     x::PositionField,
     x₀::PositionField,
-    v::VelocityField
+    v::VelocityField,
     t::TimeField)
     (2*(x.val-x₀.val)/t.val) - v.val
 end
