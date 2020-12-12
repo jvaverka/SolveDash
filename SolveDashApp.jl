@@ -150,7 +150,7 @@ acc, acc_udist, acc_utime, acc_find
             CommonUnits.time_units[Symbol(time_utime)],
             time_find == ["find"] ? true : false,
         ),
-        MyField.AccelerationField(
+        MyFields.AccelerationField(
             acc,
             CommonUnits.length_units[Symbol(acc_udist)]/CommonUnits.time_squared_units[Symbol(acc_utime)],
             CommonUnits.length_units[Symbol(acc_udist)],
