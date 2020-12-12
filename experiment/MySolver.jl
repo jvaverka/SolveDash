@@ -1,7 +1,8 @@
 module MySolver
 
-include("MyConditions.jl")
-include("MyFields.jl")
+import MyConditions: BaseConditions
+import MyFields: AbstractField, PositionField, TimeField, VelocityField, AccelerationField, unify!
+import MySolutions: BaseSolutionSet, populate!, issolved
 using Parameters
 using Unitful
 
@@ -11,7 +12,7 @@ export mysolve, # solver
     revert_units, hasunit, hasvalue  # utilities
 
 
-function mysolve(ic::MyConditions.BaseConditions)
+function mysolve(ic::BaseConditions)
 
     sol = BaseSolutionSet()
     populate!(sol,ic)
@@ -146,192 +147,192 @@ end # function mysolve
 # Solver Equations ###################################
 " vₓ = vₓ₀ + aₓt "
 function find_acceleration(
-    v::MyFields.VelocityField,
-    v₀::MyFields.VelocityField,
-    t::MyFields.TimeField)
+    v::VelocityField,
+    v₀::VelocityField,
+    t::TimeField)
     (v.val - v₀.val) / t.val
 end
 " x = x₀ + vₓ₀t + (1//2)aₓt² "
 function find_acceleration(
-    x::MyFields.PositionField,
-    x₀::MyFields.PositionField,
-    v₀::MyFields.VelocityField,
-    t::MyFields.TimeField)
+    x::PositionField,
+    x₀::PositionField,
+    v₀::VelocityField,
+    t::TimeField)
     (2*(x.val - x₀.val - v₀.val*t.val))/t.val^2
 end
 " vₓ² = vₓ₀² + 2aₓ𝚫x "
 function find_acceleration(
-    v::MyFields.VelocityField,
-    v₀::MyFields.VelocityField,
-    x::MyFields.PositionField,
-    x₀::MyFields.PositionField)
+    v::VelocityField,
+    v₀::VelocityField,
+    x::PositionField,
+    x₀::PositionField)
     (v.val^2 - v₀.val^2) / (2 * (x.val - x₀.val))
 end
 " vₓ = vₓ₀ + aₓt "
 function find_time(
-    v::MyFields.VelocityField,
-    v₀::MyFields.VelocityField,
-    a::MyFields.AccelerationField)
+    v::VelocityField,
+    v₀::VelocityField,
+    a::AccelerationField)
     (v.val - v₀.val) / a.val
 end
 " v̄ = 𝚫x/𝚫t "
 function find_time(
-    x::MyFields.PositionField,
-    x₀::MyFields.PositionField,
-    v̄::MyFields.VelocityField)
+    x::PositionField,
+    x₀::PositionField,
+    v̄::VelocityField)
     (x.val - x₀.val) / v̄.val
 end
 " a = 𝚫v/𝚫t "
 function find_time(
-    v::MyFields.VelocityField,
-    v₀::MyFields.VelocityField,
-    a::MyFields.AccelerationField)
+    v::VelocityField,
+    v₀::VelocityField,
+    a::AccelerationField)
     (v.val - v₀.val) / a.val
 end
 " v̄ = 𝚫x/t "
 function find_average_velocity(
-    x::MyFields.PositionField,
-    x₀::MyFields.PositionField,
-    t::MyFields.TimeField)
+    x::PositionField,
+    x₀::PositionField,
+    t::TimeField)
     (x.val - x₀.val) / t.val
 end
 " v̄ = 𝚫v/t "
 function find_average_velocity(
-    v::MyFields.VelocityField,
-    v₀::MyFields.VelocityField,
-    t::MyFields.TimeField)
+    v::VelocityField,
+    v₀::VelocityField,
+    t::TimeField)
     (v.val - v₀.val) / t.val
 end
 " v = v₀ + at "
 function find_velocity(
-    v₀::MyFields.VelocityField,
-    a::MyFields.AccelerationField,
-    t::MyFields.TimeField)
+    v₀::VelocityField,
+    a::AccelerationField,
+    t::TimeField)
     v₀.val + a.val*t.val
 end
 " v² = v₀² + 2a𝚫x "
 function find_velocity(
-    v₀::MyFields.VelocityField,
-    a::MyFields.AccelerationField,
-    x::MyFields.PositionField,
-    x₀::MyFields.PositionField)
+    v₀::VelocityField,
+    a::AccelerationField,
+    x::PositionField,
+    x₀::PositionField)
     √(v₀.val^2 + a.val*(x.val - x₀.val))
 end
 " 𝚫x = ((v₀+v)/2)t "
 function find_velocity(
-    x::MyFields.PositionField,
-    x₀::MyFields.PositionField,
-    v₀::MyFields.VelocityField,
-    t::MyFields.TimeField)
+    x::PositionField,
+    x₀::PositionField,
+    v₀::VelocityField,
+    t::TimeField)
     2*((x.val-x₀.val)/t.val) - v₀.val
 end
 " v̄ = (v₀+v)/t "
 function find_initial_velocity(
-    v̄::MyFields.VelocityField,
-    v::MyFields.VelocityField,
-    t::MyFields.TimeField)
+    v̄::VelocityField,
+    v::VelocityField,
+    t::TimeField)
     v̄.val*t.val - v.val
 end
 " v = v₀ + at "
 function find_initial_velocity(
-    v::MyFields.VelocityField,
-    a::MyFields.AccelerationField,
-    t::MyFields.TimeField)
+    v::VelocityField,
+    a::AccelerationField,
+    t::TimeField)
     v.val - a.val*t.val
 end
 " v² = v₀² + 2a𝚫x "
 function find_initial_velocity(
-    v::MyFields.VelocityField,
-    a::MyFields.AccelerationField,
-    x::MyFields.PositionField,
-    x₀::MyFields.PositionField)
+    v::VelocityField,
+    a::AccelerationField,
+    x::PositionField,
+    x₀::PositionField)
     √(v.val^2 - 2*a.val*(x.val-x₀.val))
 end
 " 𝚫x = v₀t + 0.5at² "
 function find_initial_velocity(
-    x::MyFields.PositionField,
-    x₀::MyFields.PositionField,
-    t::MyFields.TimeField,
-    a::MyFields.AccelerationField)
+    x::PositionField,
+    x₀::PositionField,
+    t::TimeField,
+    a::AccelerationField)
     ((x.val - x₀.val) - 0.5*a.val*t.val^2) / t.val
 end
 " 𝚫x = ((v₀+v)/2)*t "
 function find_initial_velocity(
-    x::MyFields.PositionField,
-    x₀::MyFields.PositionField,
-    v::MyFields.VelocityField,
-    t::MyFields.TimeField)
+    x::PositionField,
+    x₀::PositionField,
+    v::VelocityField,
+    t::TimeField)
     (2*(x.val-x₀.val)/t.val) - v.val
 end
 " v̄ = 𝚫x/t "
 function find_final_position(
-    v̄::MyFields.VelocityField,
-    x₀::MyFields.PositionField,
-    t::MyFields.TimeField)
+    v̄::VelocityField,
+    x₀::PositionField,
+    t::TimeField)
     v̄.val*t.val + x₀.val
 end
 " v² = v₀² + 2a𝚫x "
 function find_final_position(
-    v::MyFields.VelocityField,
-    v₀::MyFields.VelocityField,
-    a::MyFields.AccelerationField,
-    x₀::MyFields.PositionField)
+    v::VelocityField,
+    v₀::VelocityField,
+    a::AccelerationField,
+    x₀::PositionField)
     ((v.val^2 - v₀.val^2)/(2*a.val)) + x₀.val
 end
 " 𝚫x = v₀t + 0.5at² "
 function find_final_position(
-    x₀::MyFields.PositionField,
-    v₀::MyFields.VelocityField,
-    t::MyFields.TimeField,
-    a::MyFields.AccelerationField)
+    x₀::PositionField,
+    v₀::VelocityField,
+    t::TimeField,
+    a::AccelerationField)
     v₀.val*t.val + 0.5*a.val*t.val^2 + x₀.val
 end
 " 𝚫x = ((v₀+v)/2)t "
 function find_final_position(
-    x₀::MyFields.PositionField,
-    v₀::MyFields.VelocityField,
-    v::MyFields.VelocityField,
-    t::MyFields.TimeField)
+    x₀::PositionField,
+    v₀::VelocityField,
+    v::VelocityField,
+    t::TimeField)
     ((v₀.val+v.val)/2)*t.val + x₀.val
 end
 " v̄ = 𝚫x/t "
 function find_initial_position(
-    v̄::MyFields.VelocityField,
-    x::MyFields.PositionField,
-    t::MyFields.TimeField)
+    v̄::VelocityField,
+    x::PositionField,
+    t::TimeField)
     x.val - v̄.val*t.val
 end
 " v² = v₀² + 2a𝚫x "
 function find_initial_position(
-    v::MyFields.VelocityField,
-    v₀::MyFields.VelocityField,
-    a::MyFields.AccelerationField,
-    x::MyFields.PositionField)
+    v::VelocityField,
+    v₀::VelocityField,
+    a::AccelerationField,
+    x::PositionField)
     x.val - ((v.val^2 - v₀.val^2)/(2*a.val))
 end
 " 𝚫x = v₀t + 0.5at² "
 function find_initial_position(
-    x::MyFields.PositionField,
-    v₀::MyFields.VelocityField,
-    t::MyFields.TimeField,
-    a::MyFields.AccelerationField)
+    x::PositionField,
+    v₀::VelocityField,
+    t::TimeField,
+    a::AccelerationField)
     x.val - (v₀.val*t.val + 0.5*a.val*t.val^2)
 end
 " 𝚫x = ((v₀+v)/2)t "
 function find_initial_position(
-    x::MyFields.PositionField,
-    v₀::MyFields.VelocityField,
-    v::MyFields.VelocityField,
-    t::MyFields.TimeField)
+    x::PositionField,
+    v₀::VelocityField,
+    v::VelocityField,
+    t::TimeField)
     x.val - ((v₀.val+v.val)/2)*t.val
 end
 # Solver Utilities ###################################
 " Revert field value back to original units "
-function revert_units(field::T) where T<:MyFields.AbstractField
+function revert_units(field::T) where T<:AbstractField
     field.val * field.unit
 end
 " Ensure all fields in a given list have units "
-function hasunit(fields::Vector{<:MyFields.AbstractField})
+function hasunit(fields::Vector{<:AbstractField})
     for f ∈ fields
         if isnothing(f.unit)
             return false
@@ -340,7 +341,7 @@ function hasunit(fields::Vector{<:MyFields.AbstractField})
     return true
 end
 " Ensure all fields in a given list have values "
-function hasvalue(fields::Vector{<:MyFields.AbstractField})
+function hasvalue(fields::Vector{<:AbstractField})
     for f ∈ fields
         if isnothing(f.val)
             return false

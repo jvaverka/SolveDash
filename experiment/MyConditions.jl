@@ -1,6 +1,6 @@
 module MyConditions
 
-include("MyFields.jl")
+using MyFields
 using Parameters
 
 export BaseConditions, OneDKinematicConditions, TwoDKinematicConditions,

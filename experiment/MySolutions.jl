@@ -1,6 +1,6 @@
 module MySolutions
 
-include("MyConditions.jl")
+using MyConditions
 export AbstractSolutionSet, BaseSolutionSet, populate!, issolved
 
 mutable struct SomeSolution

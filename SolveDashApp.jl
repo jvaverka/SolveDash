@@ -1,10 +1,11 @@
 using Dash, DashHtmlComponents, DashCoreComponents
 
 # include("solver/Solver.jl")
-include("experiment/MyConditions.jl")
-include("experiment/MyFields.jl")
-include("experiment/MySolutions.jl")
-include("experiment/MySolver.jl")
+push!(LOAD_PATH,"./experiment/")
+import MyConditions: BaseConditions
+import MyFields: PositionField, VelocityField, TimeField, AccelerationField
+import MySolutions: BaseSolutionSet
+import MySolver: mysolve
 
 include("tabs/common/CommonUnits.jl")
 include("tabs/Basics.jl")
@@ -113,45 +114,45 @@ time, time_utime, time_find,
 acc, acc_udist, acc_utime, acc_find
 
     # dictionary to hold given |initial_conditions|
-    initial_conditions = MyConditions.BaseConditions(
-        MyFields.PositionField(
-            init_pos,
+    initial_conditions = BaseConditions(
+        PositionField(
+            isnothing(init_pos) ? nothing : float(init_pos),
             CommonUnits.length_units[Symbol(init_pos_udist)],
             init_pos_find == ["find"] ? true : false
         ),
-        MyFields.PositionField(
-            final_pos,
+        PositionField(
+            isnothing(final_pos) ? nothing : float(final_pos),
             CommonUnits.length_units[Symbol(final_pos_udist)],
             final_pos_find == ["find"] ? true : false
         ),
-        MyFields.VelocityField(
-            init_vel,
+        VelocityField(
+            isnothing(init_vel) ? nothing : float(init_vel),
             CommonUnits.length_units[Symbol(init_vel_udist)]/CommonUnits.time_units[Symbol(init_vel_utime)],
             CommonUnits.length_units[Symbol(init_vel_udist)],
             CommonUnits.time_units[Symbol(init_vel_utime)],
             init_vel_find == ["find"] ? true : false,
         ),
-        MyFields.VelocityField(
-            final_vel,
+        VelocityField(
+            isnothing(final_vel) ? nothing : float(final_vel),
             CommonUnits.length_units[Symbol(final_vel_udist)]/CommonUnits.time_units[Symbol(final_vel_utime)],
             CommonUnits.length_units[Symbol(final_vel_udist)],
             CommonUnits.time_units[Symbol(final_vel_utime)],
             final_vel_find == ["find"] ? true : false,
         ),
-        MyFields.VelocityField(
-            avg_vel,
+        VelocityField(
+            isnothing(avg_vel) ? nothing : float(avg_vel),
             CommonUnits.length_units[Symbol(avg_vel_udist)]/CommonUnits.time_units[Symbol(avg_vel_utime)],
             CommonUnits.length_units[Symbol(avg_vel_udist)],
             CommonUnits.time_units[Symbol(avg_vel_utime)],
             avg_vel_find == ["find"] ? true : false
         ),
-        MyFields.TimeField(
-            time,
+        TimeField(
+            isnothing(time) ? nothing : float(time),
             CommonUnits.time_units[Symbol(time_utime)],
             time_find == ["find"] ? true : false,
         ),
-        MyFields.AccelerationField(
-            acc,
+        AccelerationField(
+            isnothing(acc) ? nothing : float(acc),
             CommonUnits.length_units[Symbol(acc_udist)]/CommonUnits.time_squared_units[Symbol(acc_utime)],
             CommonUnits.length_units[Symbol(acc_udist)],
             CommonUnits.time_squared_units[Symbol(acc_utime)],
@@ -159,7 +160,7 @@ acc, acc_udist, acc_utime, acc_find
         )
     )
 
-    solutions = MySolver.mysolve(initial_conditions)
+    solutions = mysolve(initial_conditions)
 
     result = ""
 
