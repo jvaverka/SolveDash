@@ -1,6 +1,11 @@
 using Dash, DashHtmlComponents, DashCoreComponents
 
-include("solver/Solver.jl")
+# include("solver/Solver.jl")
+include("experiment/MyConditions.jl")
+include("experiment/MyFields.jl")
+include("experiment/MySolutions.jl")
+include("experiment/MySolver.jl")
+
 include("tabs/common/CommonUnits.jl")
 include("tabs/Basics.jl")
 include("tabs/KinematicsOneD.jl")
@@ -108,66 +113,79 @@ time, time_utime, time_find,
 acc, acc_udist, acc_utime, acc_find
 
     # dictionary to hold given |initial_conditions|
-    initial_conditions = Dict(
-        :x₀ => Dict(
-            :value => CommonUnits.get_value_with_unit(init_pos, CommonUnits.length_units[Symbol(init_pos_udist)]),
-            :udist => init_pos_udist,
-            :utime => nothing,
-            :find  => init_pos_find == ["find"] ? true : false,
+    initial_conditions = MyConditions.BaseConditions(
+        MyFields.PositionField(
+            init_pos,
+            CommonUnits.length_units[Symbol(init_pos_udist)],
+            init_pos_find == ["find"] ? true : false
         ),
-        :x => Dict(
-            :value => CommonUnits.get_value_with_unit(final_pos, CommonUnits.length_units[Symbol(final_pos_udist)]),
-            :udist => final_pos_udist,
-            :utime => nothing,
-            :find  => final_pos_find == ["find"] ? true : false,
+        MyFields.PositionField(
+            final_pos,
+            CommonUnits.length_units[Symbol(final_pos_udist)],
+            final_pos_find == ["find"] ? true : false
         ),
-        :v₀ => Dict(
-            :value => CommonUnits.get_value_with_units(init_vel, CommonUnits.length_units[Symbol(init_vel_udist)], CommonUnits.time_units[Symbol(init_vel_utime)]),
-            :udist => init_vel_udist,
-            :utime => init_vel_utime,
-            :find  => init_vel_find == ["find"] ? true : false,
+        MyFields.VelocityField(
+            init_vel,
+            CommonUnits.length_units[Symbol(init_vel_udist)]/CommonUnits.time_units[Symbol(init_vel_utime)],
+            CommonUnits.length_units[Symbol(init_vel_udist)],
+            CommonUnits.time_units[Symbol(init_vel_utime)],
+            init_vel_find == ["find"] ? true : false,
         ),
-        :v => Dict(
-            :value => CommonUnits.get_value_with_units(final_vel, CommonUnits.length_units[Symbol(final_vel_udist)], CommonUnits.time_units[Symbol(final_vel_utime)]),
-            :udist => final_vel_udist,
-            :utime => final_vel_utime,
-            :find  => final_vel_find == ["find"] ? true : false,
+        MyFields.VelocityField(
+            final_vel,
+            CommonUnits.length_units[Symbol(final_vel_udist)]/CommonUnits.time_units[Symbol(final_vel_utime)],
+            CommonUnits.length_units[Symbol(final_vel_udist)],
+            CommonUnits.time_units[Symbol(final_vel_utime)],
+            final_vel_find == ["find"] ? true : false,
         ),
-        :v̄ => Dict(
-            :value => CommonUnits.get_value_with_units(avg_vel, CommonUnits.length_units[Symbol(avg_vel_udist)], CommonUnits.time_units[Symbol(avg_vel_utime)]),
-            :udist => avg_vel_udist,
-            :utime => avg_vel_utime,
-            :find  => avg_vel_find == ["find"] ? true : false,
+        MyFields.VelocityField(
+            avg_vel,
+            CommonUnits.length_units[Symbol(avg_vel_udist)]/CommonUnits.time_units[Symbol(avg_vel_utime)],
+            CommonUnits.length_units[Symbol(avg_vel_udist)],
+            CommonUnits.time_units[Symbol(avg_vel_utime)],
+            avg_vel_find == ["find"] ? true : false
         ),
-        :t => Dict(
-            :value => CommonUnits.get_value_with_unit(time, CommonUnits.time_units[Symbol(time_utime)]),
-            :udist => nothing,
-            :utime => time_utime,
-            :find  => time_find == ["find"] ? true : false,
+        MyFields.TimeField(
+            time,
+            CommonUnits.time_units[Symbol(time_utime)],
+            time_find == ["find"] ? true : false,
         ),
-        :a => Dict(
-            :value => CommonUnits.get_value_with_units(acc, CommonUnits.length_units[Symbol(acc_udist)], CommonUnits.time_squared_units[Symbol(acc_utime)]),
-            :udist => acc_udist,
-            :utime => acc_utime,
-            :find  => acc_find == ["find"] ? true : false,
-        ),
+        MyField.AccelerationField(
+            acc,
+            CommonUnits.length_units[Symbol(acc_udist)]/CommonUnits.time_squared_units[Symbol(acc_utime)],
+            CommonUnits.length_units[Symbol(acc_udist)],
+            CommonUnits.time_squared_units[Symbol(acc_utime)],
+            acc_find == ["find"] ? true : false,
+        )
     )
 
-    solutions = Solver.solve(initial_conditions)
+    solutions = MySolver.mysolve(initial_conditions)
 
-    solns = ""
+    result = ""
 
-    for (key, value) in solutions
-        solns *= "
-        $key:\t$value
-        "
+    if initial_conditions.x₀.find
+        result *= "x₀ ⇒ $(solutions.x₀)\n"
+    end
+    if initial_conditions.x.find
+        result *= "x ⇒ $(solutions.x)\n"
+    end
+    if initial_conditions.v₀.find
+        result *= "v₀ ⇒ $(solutions.v₀)\n"
+    end
+    if initial_conditions.v.find
+        result *= "v ⇒ $(solutions.v)\n"
+    end
+    if initial_conditions.v̄.find
+        result *= "v̄ ⇒ $(solutions.v̄)\n"
+    end
+    if initial_conditions.t.find
+        result *= "t ⇒ $(solutions.t)\n"
+    end
+    if initial_conditions.a.find
+        result *= "a ⇒ $(solutions.a)\n"
     end
 
-    if solns == ""
-        solns *= "Not enough information to solve."
-    end
-
-    return solns
+    return result
 end
 
 run_server(app, "0.0.0.0", debug = true)
