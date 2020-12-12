@@ -87,7 +87,7 @@ end # utilities testset
         end
     end
     @testset "find time" begin
-        @testset " vₓ = vₓ₀ + aₓt " begin
+        @testset " vₓ = vₓ₀ + aₓt ⇔ a = 𝚫v/𝚫t " begin
             @test find_time(
                 VelocityField(4.0,m/s,m,s,false),
                 VelocityField(0.0,m/s,m,s,false),
@@ -100,6 +100,18 @@ end # utilities testset
                 VelocityField(2_000.0,m/s,m,s,false),
                 VelocityField(0.0,m/s,m,s,false),
                 AccelerationField(32.0,m/s^2,m,s,false)) ≈ 62.5
+            @test find_time(
+                VelocityField(75.0,m/s,m,s,false),
+                VelocityField(0.0,m/s,m,s,false),
+                AccelerationField(10.0,m/s^2,m,s,false)) ≈ 7.5
+            @test find_time(
+                VelocityField(0.0,m/s,m,s,false),
+                VelocityField(100.0,m/s,m,s,false),
+                AccelerationField(-10.0,m/s^2,m,s,false)) ≈ 10.0
+            @test find_time(
+                VelocityField(25.0,m/s,m,s,false),
+                VelocityField(1_000.0,m/s,m,s,false),
+                AccelerationField(-10.0,m/s^2,m,s,false)) ≈ 97.5
         end
         @testset " v̄ = 𝚫x/𝚫t " begin
             @test find_time(
@@ -114,20 +126,6 @@ end # utilities testset
                 PositionField(100.0,m,false),
                 PositionField(37.0,m,false),
                 VelocityField(14.0,m/s,m,s,false)) ≈ 4.5
-        end
-        @testset " a = 𝚫v/𝚫t " begin
-            @test find_time(
-                VelocityField(75.0,m/s,m,s,false),
-                VelocityField(0.0,m/s,m,s,false),
-                AccelerationField(10.0,m/s^2,m,s,false)) ≈ 7.5
-            @test find_time(
-                VelocityField(0.0,m/s,m,s,false),
-                VelocityField(100.0,m/s,m,s,false),
-                AccelerationField(-10.0,m/s^2,m,s,false)) ≈ 10.0
-            @test find_time(
-                VelocityField(25.0,m/s,m,s,false),
-                VelocityField(1_000.0,m/s,m,s,false),
-                AccelerationField(-10.0,m/s^2,m,s,false)) ≈ 97.5
         end
     end
     @testset "find average velocity" begin

@@ -45,8 +45,6 @@ function mysolve(ic::BaseConditions)
                 sol.t = find_time(v,v₀,a)* u"s" |> t.unit
             elseif hasvalue([x,x₀,v̄])
                 sol.t = find_time(x,x₀,v̄)* u"s" |> t.unit
-            elseif hasvalue([v,v₀,a])
-                sol.t = find_time(v,v₀,a)* u"s" |> t.unit
             else
                 sol.t = nothing
             end
@@ -168,7 +166,7 @@ function find_acceleration(
     x₀::PositionField)
     (v.val^2 - v₀.val^2) / (2 * (x.val - x₀.val))
 end
-" vₓ = vₓ₀ + aₓt "
+" vₓ = vₓ₀ + aₓt ⇔ a = 𝚫v/𝚫t "
 function find_time(
     v::VelocityField,
     v₀::VelocityField,
@@ -181,13 +179,6 @@ function find_time(
     x₀::PositionField,
     v̄::VelocityField)
     (x.val - x₀.val) / v̄.val
-end
-" a = 𝚫v/𝚫t "
-function find_time(
-    v::VelocityField,
-    v₀::VelocityField,
-    a::AccelerationField)
-    (v.val - v₀.val) / a.val
 end
 " v̄ = 𝚫x/t "
 function find_average_velocity(
