@@ -21,8 +21,8 @@ function basic_layout()
                         children = [
                             html_th("Field"),
                             html_th("Value"),
-                            html_th("Unit (length)"),
-                            html_th("Unit (time)"),
+                            html_th("length"),
+                            html_th("time"),
                             html_th("Find"),
                         ],
                     ),
@@ -254,7 +254,7 @@ function basic_layout()
                             html_td(dcc_dropdown(
                                 id = "input-basic-acceleration-utime",
                                 options = [
-                                    (label = string(k,"^2"), value = string(v))
+                                    (label = string(k,"²"), value = string(v))
                                     for (k,v) in CommonUnits.time_squared_units
                                 ],
                                 value = "s",

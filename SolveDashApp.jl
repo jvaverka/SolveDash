@@ -36,8 +36,14 @@ app.layout = html_div() do
                         children = "solve",
                         n_clicks = 0,
                     ),
-                    html_h1("Solutions -"),
-                    html_h3(id = "output-solution"),
+                    dcc_markdown("💯 𝕊𝕠𝕝𝕦𝕥𝕚𝕠𝕟 💯\n"),
+                    dcc_markdown(
+                        id = "output-solution",
+                        style = (
+                            width = "100%",
+                            display = "inline-block",
+                        ),
+                    ),
                 ],
             ),
             dcc_tab(
@@ -153,7 +159,7 @@ acc, acc_udist, acc_utime, acc_find
         ),
         AccelerationField(
             isnothing(acc) ? nothing : float(acc),
-            CommonUnits.length_units[Symbol(acc_udist)]/CommonUnits.time_squared_units[Symbol(acc_utime)],
+            CommonUnits.length_units[Symbol(acc_udist)]/CommonUnits.time_squared_units[Symbol(acc_utime)]^2,
             CommonUnits.length_units[Symbol(acc_udist)],
             CommonUnits.time_squared_units[Symbol(acc_utime)],
             acc_find == ["find"] ? true : false,
@@ -164,25 +170,25 @@ acc, acc_udist, acc_utime, acc_find
 
     result = ""
 
-    if initial_conditions.x₀.find
+    if isnothing(initial_conditions.x₀.val)
         result *= "x₀ ⇒ $(solutions.x₀)\n"
     end
-    if initial_conditions.x.find
+    if isnothing(initial_conditions.x.val)
         result *= "x ⇒ $(solutions.x)\n"
     end
-    if initial_conditions.v₀.find
+    if isnothing(initial_conditions.v₀.val)
         result *= "v₀ ⇒ $(solutions.v₀)\n"
     end
-    if initial_conditions.v.find
+    if isnothing(initial_conditions.v.val)
         result *= "v ⇒ $(solutions.v)\n"
     end
-    if initial_conditions.v̄.find
+    if isnothing(initial_conditions.v̄.val)
         result *= "v̄ ⇒ $(solutions.v̄)\n"
     end
-    if initial_conditions.t.find
+    if isnothing(initial_conditions.t.val)
         result *= "t ⇒ $(solutions.t)\n"
     end
-    if initial_conditions.a.find
+    if isnothing(initial_conditions.a.val)
         result *= "a ⇒ $(solutions.a)\n"
     end
 
