@@ -23,8 +23,8 @@ b = BaseConditions(
 # begin tests
 @testset "solver utilities" begin
     @testset "hasunit" begin
-        @test hasunit([x, v̄]) == false
-        @test hasunit([x₀, v₀, v, t, a]) == true
+        @test !hasunit([x, v̄])
+        @test hasunit([x₀, v₀, v, t, a])
     end
     @testset "hasvalue" begin
         @test hasvalue([x, v̄]) == false

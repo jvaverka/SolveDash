@@ -325,8 +325,11 @@ end
 " Ensure all fields in a given list have units "
 function hasunit(fields::Vector{<:AbstractField})
     for f ∈ fields
-        hasunit(f)
+        if isnothing(f.unit)
+            return false
+        end
     end
+    return true
 end
 " Ensure |PositionField| has units "
 hasunit(field::PositionField) = !isnothing(field.unit)
