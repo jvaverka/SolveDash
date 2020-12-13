@@ -47,6 +47,9 @@ app.layout = html_div() do
                         children = "solve",
                         n_clicks = 0,
                     ),
+                    dcc_markdown(
+                        "## ❗❗❗ THIS TAB IS STILL UNDER DEVELOPMENT ❗❗❗"
+                    ),
                     dcc_markdown(id = "output-k1d-solution"),
                 ],
             ),
@@ -58,6 +61,9 @@ app.layout = html_div() do
                         id = "solve-k2d-button-state",
                         children = "solve",
                         n_clicks = 0,
+                    ),
+                    dcc_markdown(
+                        "## ❗❗❗ THIS TAB IS STILL UNDER DEVELOPMENT ❗❗❗"
                     ),
                     dcc_markdown(id = "output-k2d-solution"),
                 ],
