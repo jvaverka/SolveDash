@@ -76,7 +76,7 @@ function mysolve(ic::BaseConditions)
             elseif hasvalue([x,x₀,v₀,t])
                 sol.v = find_velocity(x,x₀,v₀,t)* u"m"/u"s" |> v.unit
             else
-                sol.v = "not enough info to solve"
+                sol.v = nothing
             end
             if !isnothing(sol.v)
                 v.find = false
@@ -132,7 +132,7 @@ function mysolve(ic::BaseConditions)
             elseif hasvalue([x,v₀,v,t])
                 sol.x₀ = find_initial_position(x,v₀,v,t)* u"m" |> x₀.unit
             else
-                sol.x₀ = "not enough info to solve"
+                sol.x₀ = nothing
             end
             if !isnothing(sol.x₀)
                 x₀.find = false
