@@ -1,6 +1,5 @@
 using Dash, DashHtmlComponents, DashCoreComponents
 
-# include("solver/Solver.jl")
 push!(LOAD_PATH,"./experiment/")
 import MyConditions: BaseConditions
 import MyFields: PositionField, VelocityField, TimeField, AccelerationField
