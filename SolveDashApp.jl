@@ -24,7 +24,7 @@ hit **solve**!
 "
 
 app.layout = html_div() do
-    dcc_markdown(md),
+    dcc_markdown(md, style=(textAlign="center",)),
     dcc_tabs(
         children = [
             dcc_tab(
